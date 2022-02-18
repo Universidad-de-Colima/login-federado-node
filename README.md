@@ -5,7 +5,7 @@ Se utiliza Node.js y el paquete `passport-saml`
 Config
 ======
 
-This app requires 3 files to be placed in a folder named `cert` located in the project's root directory. These files include (1) the certificate  of the Identity Provider (IdP). In this case, RIT's Shibboleth Server is the IdP. As a Service Provider (SP), you need to generate your own (2) certificate and (3) private key. These files are named as follows:
+This app requires 3 files to be placed in a folder named `cert` located in the project's root directory. These files include (1) the certificate  of the Identity Provider (IdP). In this case, IdP de UCOL is the IdP. As a Service Provider (SP), you need to generate your own (2) certificate and (3) private key. These files are named as follows:
 
 - `cert.pem`: SP's certificate creados por ti (Ver seccion siguiente)
 - `idp.pem`: IdP's certificate (El de la UDC está en https://wayf.ucol.mx/saml2/idp/metadata.php)
