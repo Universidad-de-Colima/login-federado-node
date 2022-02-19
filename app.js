@@ -57,20 +57,39 @@ app.get('/',
     res.send('Authenticated');
   }
 );
-
+6
 app.get('/login',
-  passport.authenticate('saml', { failureRedirect: '/login/fail' }),
-  function (req, res) {
-    res.redirect('/');
-  }
+passport.authenticate('saml', { failureRedirect: '/login/fail' }),
+function (req, res) {
+  res.redirect('/');
+}
 );
 
 app.post('/login/callback',
-   passport.authenticate('saml', { failureRedirect: '/login/fail' }),
-  function(req, res) {
-    res.redirect('/');
-  }
-);
+  function (req, res,next) {
+    next();
+  },
+    passport.authenticate('saml', { 
+      failureRedirect: '/login/fail',
+      session:false 
+    }),
+    (req,res) => {
+      const uCorreo = req.user?.uCorreo;
+      const uNombre = req.user?.uNombre;
+      const uDependencia = req.user?.uDependencia;
+      const uCuenta = req.user?.uCuenta;
+      const uTrabajador = req.user?.uTrabajador;
+      const uTipo = req.user?.uTipo;
+      const cn = req.user?.cn;
+      const sn = req.user?.sn;
+      const displayName = req.user?.displayName;
+      const givenName = req.user?.givenName;
+
+
+      res.send({uCorreo, uNombre, uDependencia, uCuenta, uTrabajador, uTipo, cn, sn, displayName, givenName});
+    }
+  );
+
 
 app.get('/login/fail', 
   function(req, res) {
