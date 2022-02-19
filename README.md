@@ -4,7 +4,7 @@ Se utiliza Node.js y el paquete `passport-saml`
 
 Config
 ======
-###Parametros
+### Parametros
 `callbackUrl`: URL a la que redigirá el IdP una vez autenticado (debe ser de tu servidor) Identity Provider -> Service Provider.
 `entryPoint`:  URL del IdP que ofrece el servicio de autenticación (En este caso, la URL de SignOn de UCOL) Service Provider -> Identity Provider.
 `issuer`: El Entity ID de tu proyecto.
