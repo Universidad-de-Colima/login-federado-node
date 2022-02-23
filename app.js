@@ -1,12 +1,12 @@
-var http = require('http');
-var fs = require('fs');
-var express = require("express");
-var dotenv = require('dotenv');
-var bodyParser = require('body-parser');
-var cookieParser = require('cookie-parser');
-var session = require('express-session');
-var passport = require('passport');
-var saml = require('passport-saml');
+const http = require('http');
+const fs = require('fs');
+const express = require("express");
+const dotenv = require('dotenv');
+const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
+const session = require('express-session');
+const passport = require('passport');
+const saml = require('passport-saml');
 
 dotenv.load();
 
@@ -18,7 +18,7 @@ passport.deserializeUser(function(user, done) {
   done(null, user);
 });
 
-var samlStrategy = new saml.Strategy({
+const samlStrategy = new saml.Strategy({
   // URL that goes from the Identity Provider -> Service Provider
   callbackUrl: "http://localhost:4006/login/callback",
   // URL that goes from the Service Provider -> Identity Provider
@@ -31,20 +31,20 @@ var samlStrategy = new saml.Strategy({
   privateCert: fs.readFileSync(__dirname + '/cert/key.pem', 'utf8'),
   // Identity Provider's public key
   cert: fs.readFileSync(__dirname + '/cert/idp.crt', 'utf8')
-}, function(profile, done) {
+}, (profile, done) => {
   return done(null, profile); 
 });
 
 passport.use(samlStrategy);
 
-var app = express();
+const app = express();
 
 app.use(cookieParser());
 app.use(bodyParser());
 app.use(passport.initialize());
 app.use(passport.session());
 
-function ensureAuthenticated(req, res, next) {
+const ensureAuthenticated=(req, res, next)=> {
   if (req.isAuthenticated())
     return next();
   else
@@ -65,8 +65,7 @@ function (req, res) {
 }
 );
 
-app.post('/login/callback',
-  function (req, res,next) {
+app.post('/login/callback', (req, res,next)=> {
     next();
   },
     passport.authenticate('saml', { 
@@ -91,26 +90,24 @@ app.post('/login/callback',
   );
 
 
-app.get('/login/fail', 
-  function(req, res) {
+app.get('/login/fail', (req, res) => {
     res.status(401).send('Login failed');
   }
 );
 
-app.get('/Metadata', 
-  function(req, res) {
+app.get('/Metadata', (req, res) => {
     res.type('application/xml');
     res.status(200).send(samlStrategy.generateServiceProviderMetadata(fs.readFileSync(__dirname + '/cert/cert.pem', 'utf8')));
   }
 );
 
 //general error handler
-app.use(function(err, req, res, next) {
+app.use((err, req, res, next) => {
   console.log("Fatal error: " + JSON.stringify(err));
   next(err);
 });
 
-var server = app.listen(4006, function () {
+const server = app.listen(4006, function () {
   console.log('Listening on port %d', server.address().port)
 });
 
