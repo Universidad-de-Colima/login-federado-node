@@ -1,24 +1,15 @@
-var http = require('http');
-var fs = require('fs');
-var express = require("express");
-var dotenv = require('dotenv');
-var bodyParser = require('body-parser');
-var cookieParser = require('cookie-parser');
-var session = require('express-session');
-var passport = require('passport');
-var saml = require('passport-saml');
+const fs = require('fs');
+const express = require("express");
+const cookieParser = require('cookie-parser');
+const session = require('express-session');
+const passport = require('passport');
+const saml = require('passport-saml');
 
-dotenv.load();
+passport.serializeUser((user, done) => done(null, user));
 
-passport.serializeUser(function(user, done) {
-  done(null, user);
-});
+passport.deserializeUser((user, done) => done(null, user));
 
-passport.deserializeUser(function(user, done) {
-  done(null, user);
-});
-
-var samlStrategy = new saml.Strategy({
+const samlStrategy = new saml.Strategy({
   // URL that goes from the Identity Provider -> Service Provider
   callbackUrl: "http://localhost:4006/login/callback",
   // URL that goes from the Service Provider -> Identity Provider
@@ -31,67 +22,70 @@ var samlStrategy = new saml.Strategy({
   privateCert: fs.readFileSync(__dirname + '/cert/key.pem', 'utf8'),
   // Identity Provider's public key
   cert: fs.readFileSync(__dirname + '/cert/idp.crt', 'utf8')
-}, function(profile, done) {
-  return done(null, profile); 
-});
+}, (profile, done) => done(null, profile));
 
 passport.use(samlStrategy);
 
-var app = express();
+const app = express();
 
 app.use(cookieParser());
-app.use(bodyParser());
+app.use(express.urlencoded({extended:true}));
+app.use(express.json());
 app.use(passport.initialize());
+app.use(session({
+  secret: "thisismysecrctekeyfhrgfgrfrty84fwir767",
+  saveUninitialized:true,
+  cookie: { maxAge:1000 * 60 * 60 * 24 },
+  resave: false 
+  
+}))
 app.use(passport.session());
 
-function ensureAuthenticated(req, res, next) {
+const ensureAuthenticated=(req, res, next) => {
   if (req.isAuthenticated())
     return next();
   else
     return res.redirect('/login');
 }
 
-app.get('/',
-  ensureAuthenticated, 
-  function(req, res) {
-    res.send('Authenticated');
-  }
-);
+app.get('/',ensureAuthenticated, (req, res) => res.send('Authenticated'));
 
-app.get('/login',
-  passport.authenticate('saml', { failureRedirect: '/login/fail' }),
-  function (req, res) {
-    res.redirect('/');
-  }
-);
+app.get('/login', passport.authenticate('saml', { failureRedirect: '/login/fail', failureFlash: true }), (req, res) => res.redirect('/'));
 
-app.post('/login/callback',
-   passport.authenticate('saml', { failureRedirect: '/login/fail' }),
-  function(req, res) {
-    res.redirect('/');
-  }
-);
+app.post('/login/callback', (req, res,next)=> {
+    next();
+  },
+    passport.authenticate('saml', { 
+      failureRedirect: '/login/fail',
+      session:false 
+    }), (req,res) => {
+      const uCorreo = req.user?.uCorreo;
+      const uNombre = req.user?.uNombre;
+      const uDependencia = req.user?.uDependencia;
+      const uCuenta = req.user?.uCuenta;
+      const uTrabajador = req.user?.uTrabajador;
+      const uTipo = req.user?.uTipo;
+      const cn = req.user?.cn;
+      const sn = req.user?.sn;
+      const displayName = req.user?.displayName;
+      const givenName = req.user?.givenName;
+      res.send({uCorreo, uNombre, uDependencia, uCuenta, uTrabajador, uTipo, cn, sn, displayName, givenName});
+    }
+  );
 
-app.get('/login/fail', 
-  function(req, res) {
-    res.status(401).send('Login failed');
-  }
-);
 
-app.get('/Metadata', 
-  function(req, res) {
+app.get('/login/fail', (req, res) => res.status(401).send('Login failed'));
+
+app.get('/Metadata', (req, res) => {
     res.type('application/xml');
     res.status(200).send(samlStrategy.generateServiceProviderMetadata(fs.readFileSync(__dirname + '/cert/cert.pem', 'utf8')));
   }
 );
 
 //general error handler
-app.use(function(err, req, res, next) {
+app.use((err, req, res, next) => {
   console.log("Fatal error: " + JSON.stringify(err));
   next(err);
 });
 
-var server = app.listen(4006, function () {
-  console.log('Listening on port %d', server.address().port)
-});
-
+const server = app.listen(4006, () => console.log('Listening on port %d', server.address().port));
