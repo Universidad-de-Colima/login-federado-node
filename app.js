@@ -1,14 +1,9 @@
-const http = require('http');
 const fs = require('fs');
 const express = require("express");
-const dotenv = require('dotenv');
-const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const passport = require('passport');
 const saml = require('passport-saml');
-
-dotenv.load();
 
 passport.serializeUser((user, done) => done(null, user));
 
@@ -34,8 +29,16 @@ passport.use(samlStrategy);
 const app = express();
 
 app.use(cookieParser());
-app.use(bodyParser());
+app.use(express.urlencoded({extended:true}));
+app.use(express.json());
 app.use(passport.initialize());
+app.use(session({
+  secret: "thisismysecrctekeyfhrgfgrfrty84fwir767",
+  saveUninitialized:true,
+  cookie: { maxAge:1000 * 60 * 60 * 24 },
+  resave: false 
+  
+}))
 app.use(passport.session());
 
 const ensureAuthenticated=(req, res, next) => {
@@ -47,7 +50,7 @@ const ensureAuthenticated=(req, res, next) => {
 
 app.get('/',ensureAuthenticated, (req, res) => res.send('Authenticated'));
 
-app.get('/login', passport.authenticate('saml', { failureRedirect: '/login/fail' }), (req, res) => res.redirect('/'));
+app.get('/login', passport.authenticate('saml', { failureRedirect: '/login/fail', failureFlash: true }), (req, res) => res.redirect('/'));
 
 app.post('/login/callback', (req, res,next)=> {
     next();
