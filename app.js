@@ -33,7 +33,11 @@ const samlStrategy = new saml.Strategy({
 app.use(session({
   secret: "thisismysecrctekeyfhrgfgrfrty84fwir767",
   saveUninitialized: true,
-  resave: true
+  resave: true,
+  cookie : {
+    secure: true,
+    sameSite: 'None'
+  }
   
 }));
 
@@ -73,25 +77,19 @@ app.post('/login/callback', passport.authenticate('saml', {
   // const givenName = req.user?.givenName;
   res.send(req.user);
 }
-    
   );
 
-
   app.get('/logout', (req, res)=> {
-    
-    console.log(req.user)
-   
-    // IdPでのSSOログアウトを実施
-    samlStrategy.logout(req, (err, request) =>{
-      console.log(err)
-     if (!err) {
        
-      return res.redirect(request);
-     }
+    if (!req.user) res.redirect('/');
+    
+    samlStrategy.logout(req, (err, request) =>{
+      return res.redirect(request)
     });
    });
 
    app.get('/logout/callback', (req, res) =>{
+    req.log.info("completing logout", req.user);
     req.logout();
     res.redirect('/');
   });
