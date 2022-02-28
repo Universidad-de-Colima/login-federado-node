@@ -33,11 +33,7 @@ const samlStrategy = new saml.Strategy({
 app.use(session({
   secret: "thisismysecrctekeyfhrgfgrfrty84fwir767",
   saveUninitialized: true,
-  resave: true,
-  cookie : {
-    secure: true,
-    sameSite: 'None'
-  }
+  resave: true
   
 }));
 
@@ -88,8 +84,7 @@ app.post('/login/callback', passport.authenticate('saml', {
     });
    });
 
-   app.get('/logout/callback', (req, res) =>{
-    req.log.info("completing logout", req.user);
+   app.post('/logout/callback', (req, res) =>{
     req.logout();
     res.redirect('/');
   });
