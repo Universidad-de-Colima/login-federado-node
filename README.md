@@ -8,7 +8,7 @@ nombre de usuario y contraseña, facebook, twitter, entre otros.
 
 **Dependencias requeridas:**
 
-npm i passport
+*npm i passport*
 
 npm i passport-saml
 
