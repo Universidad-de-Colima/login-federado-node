@@ -113,31 +113,18 @@ manera síncrona
 ``` javascript
 const app = express();
 
-Configuración del servidor express
+//Configuración del servidor express
 
 const app = express();
 
-app.use(cookieParser());
-
-app.use(express.urlencoded({extended:true}));
-
-app.use(express.json());
-
+passport.use(samlStrategy);
 app.use(passport.initialize());
-
-app.use(session({
-
-secret: "thisismysecrctekeyfhrgfgrfrty84fwir767",
-
-saveUninitialized:true,
-
-cookie: { maxAge:1000 *\** 60 *\** 60 *\** 24 },
-
-resave: false }))
+app.use(passport.session());
+app.use(express.json());
+app.use(express.urlencoded({extended:true}));
+app.use(cookieParser());
+app.use(cors());
 ```
-
-*secret*:Es una cadena para firmar cookies, es opcional, y si no se especifica no
-analizará las cookies firmadas.
 
 se le indica la configuración del servidor de archivos estáticos mediante la
 instrucción `app.use()`
@@ -146,7 +133,7 @@ si el usuario está autenticado se le da permiso de pasar, de lo contrario tendr
 que realizar el proceso de autenticación
 
 ``` javascript
-const ensureAuthenticated*=*(req, res, next) =\> {
+const ensureAuthenticated=(req, res, next) => {
 
 if (req.isAuthenticated())
 
@@ -168,10 +155,9 @@ Si la sesión está activa devuelve una respuesta SAML
 Si la sesión no está activa, se redirige al inicio de sesión del IdP
 
 ``` javascript
-app.get('/',ensureAuthenticated, (req, res) =\> res.send('Authenticated'));
+app.get('/',ensureAuthenticated, (req, res) => res.send('Authenticated'));
 
-app.get('/login', passport.authenticate('saml', { failureRedirect:
-'/login/fail', failureFlash: true }), (req, res) =\> res.redirect('/'));
+app.get('/login', passport.authenticate('saml', { failureRedirect:'/login/fail', failureFlash: true }), (req, res) => res.redirect('/'));
 ```
 
 Esta es la URL de la devolución de la llamada. Una vez que el IdP haya validado
@@ -212,7 +198,7 @@ app.post('/logout/callback', (req, res) =>{
 
 **levantamos nuestro servidor:**
 ``` javascript
-const server *=* app.listen(4006, () =\> console.log('Listening on port %d',
+const server = app.listen(4006, () => console.log('Listening on port %d',
 server.address().port));
 
 ```
