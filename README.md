@@ -12,7 +12,6 @@ nombre de usuario y contraseña, facebook, twitter, entre otros.
 npm i passport
 
 npm i passport-saml
-```
 
 *npm i express*
 
@@ -21,6 +20,7 @@ npm i passport-saml
 *npm i express-session*
 
 *npm i cors*
+```
 
 Se realiza la instanciación de las dependencias:
 
