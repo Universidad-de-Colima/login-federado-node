@@ -1,6 +1,5 @@
 const fs = require('fs');
 const express = require("express");
-const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const passport = require('passport');
 const saml = require('passport-saml');
@@ -13,20 +12,12 @@ passport.serializeUser((user, done) => done(null, user));
 passport.deserializeUser((user, done) => done(null, user));
 
 const samlStrategy = new saml.Strategy({
-  // URL that goes from the Identity Provider -> Service Provider
   callbackUrl: "http://localhost:4006/login/callback",
-  // URL that goes from the Service Provider -> Identity Provider
   entryPoint: "https://wayf.ucol.mx/saml2/idp/SSOService.php",
-  //URL de Logout de la UDC
   logoutUrl: 'https://wayf.ucol.mx/saml2/idp/SingleLogoutService.php',
   logoutCallbackUrl: 'http://localhost:4006/logout/callback',
-  // Usually specified as `/shibboleth` from site root
   issuer: "http://localhost/20166932",
-  // Service Provider private key
   decryptionPvk: fs.readFileSync(__dirname + '/cert/key.pem', 'utf8'),
-  // Service Provider Certificate
-  privateCert: fs.readFileSync(__dirname + '/cert/key.pem', 'utf8'),
-  // Identity Provider's public key
   cert: fs.readFileSync(__dirname + '/cert/idp.crt', 'utf8')
 }, (profile, done)=>{ const user= Object.assign({},profile); return done(null, profile)} );
 
@@ -42,16 +33,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(express.json());
 app.use(express.urlencoded({extended:true}));
-app.use(cookieParser());
 app.use(cors());
-
-
-// const ensureAuthenticated=(req, res, next) => {
-//   if (req.isAuthenticated())
-//     return next();
-//   else
-//     return res.redirect('/login');
-// }
 
 app.get('/', (req, res) => res.redirect('/login'));
 

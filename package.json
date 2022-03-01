@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "App que conecta node con el IdP de UCOL",
   "dependencies": {
-    "cookie-parser": "1.4.6",
     "cors": "^2.8.5",
     "dotenv": "16.0.0",
     "express": "^4.17.3",
