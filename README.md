@@ -8,9 +8,11 @@ nombre de usuario y contraseña, facebook, twitter, entre otros.
 
 **Dependencias requeridas:**
 
-*npm i passport*
+```powershell
+npm i passport
 
-*npm i passport-saml*
+npm i passport-saml
+```
 
 *npm i express*
 
@@ -41,31 +43,31 @@ const cors = require('cors');
 **Configuración de nuestro middleware con nuestra configuración del proveedor de
 identidad**:
 
-callbackUrl: Es la URL absoluta del proveedor de servicios (su aplicación) que
+*callbackUrl*: Es la URL absoluta del proveedor de servicios (su aplicación) que
 consumirá la respuesta SAML una vez que se realice la autenticación del
 proveedor de identidad.
 
-entryPoint: Es la URL proporcionada por el proveedor de identidad que se utiliza
+*entryPoint*: Es la URL proporcionada por el proveedor de identidad que se utiliza
 para redirigir a los usuarios en la página de inicio de sesión si no están
 autenticados.
 
 se obtiene en la parte del SingleSignOnService
 ![Image text](https://github.com/Universidad-de-Colima/login-federado-node/blob/main/images/09c851be-3cb3-4322-bacc-bf4f369fc164.jpg)
 
-issuer: cadena proporcionada al proveedor de identidad para identificar de forma
+*issuer*: cadena proporcionada al proveedor de identidad para identificar de forma
 única al proveedor de servicios (entityID
 
-decryptionPvk: clave privada para intentar descifrar cualquier aserción cifrada
+*decryptionPvk*: clave privada para intentar descifrar cualquier aserción cifrada
 que se reciba
 
-privateCert: certificado de proveedor de servicios
+*privateCert*: certificado de proveedor de servicios
 
 Tanto el decryptionPvk como el privateCert se obtiene con el siguiente comando
 
 *openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -nodes -days
 900*
 
-cert: Es el certificado proporcionado por el proveedor de identidad, para poder
+*cert*: Es el certificado proporcionado por el proveedor de identidad, para poder
 establecer la confianza entre el proveedor de identidad y el proveedor de
 servicios.
 
