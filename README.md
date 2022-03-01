@@ -53,10 +53,10 @@ proveedor de identidad.
 
 *privateCert*: certificado de proveedor de servicios
 
-Tanto el decryptionPvk como el privateCert se obtiene con el siguiente comando
-
 *decryptionPvk*: clave privada para intentar descifrar cualquier aserción cifrada
 que se reciba
+
+Tanto el decryptionPvk como el privateCert se obtiene con el siguiente comando
 
 ```powershell
 openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -nodes -days 900
