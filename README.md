@@ -22,7 +22,8 @@ nombre de usuario y contraseña, facebook, twitter, entre otros.
 
 Se realiza la instanciación de las dependencias:
 
-`const fs *=* require('fs');
+```
+const fs *=* require('fs');
 
 const express *=* require("express");
 
@@ -34,7 +35,8 @@ const passport *=* require('passport');
 
 const saml *=* require('passport-saml');
 
-const cors *=* require('cors');`
+const cors *=* require('cors');
+```
 
 **Configuración de nuestro middleware con nuestra configuración del proveedor de
 identidad**:
