@@ -80,11 +80,11 @@ este certificado se obtiene en el siguiente enlace:
 
 Ejemplo:
 ``` javascript
-passport.serializeUser((user, done) =\> done(null, user));
+passport.serializeUser((user, done) => done(null, user));
 
-passport.deserializeUser((user, done) =\> done(null, user));
+passport.deserializeUser((user, done) => done(null, user));
 
-const samlStrategy *=* *new* saml.Strategy({
+const samlStrategy = new saml.Strategy({
 
 callbackUrl: "http://localhost:4006/login/callback",
 
@@ -92,13 +92,13 @@ entryPoint: "https://wayf.ucol.mx/saml2/idp/SSOService.php",
 
 issuer: "http://localhost/20166932",
 
-decryptionPvk: fs.readFileSync(__dirname *+* '/cert/key.pem', 'utf8'),
+decryptionPvk: fs.readFileSync(__dirname + '/cert/key.pem', 'utf8'),
 
-privateCert: fs.readFileSync(__dirname *+* '/cert/cert.pem', 'utf8'),
+privateCert: fs.readFileSync(__dirname + '/cert/cert.pem', 'utf8'),
 
-cert: fs.readFileSync(__dirname *+* '/cert/idp.crt', 'utf8')
+cert: fs.readFileSync(__dirname + '/cert/idp.crt', 'utf8')
 
-}, (profile, done) =\> done(null, profile));
+}, (profile, done) => done(null, profile));
 
 passport.use(samlStrategy);
 ```
@@ -115,7 +115,7 @@ const app = express();
 
 Configuración del servidor express
 
-const app *=* express();
+const app = express();
 
 app.use(cookieParser());
 
