@@ -136,26 +136,28 @@ cookie: { maxAge:1000 *\** 60 *\** 60 *\** 24 },
 resave: false }))
 ```
 
-secret:Es una cadena para firmar cookies, es opcional, y si no se especifica no
+*secret*:Es una cadena para firmar cookies, es opcional, y si no se especifica no
 analizará las cookies firmadas.
 
 se le indica la configuración del servidor de archivos estáticos mediante la
-instrucción app.use()
+instrucción `[javascript] app.use()`
 
 si el usuario está autenticado se le da permiso de pasar, de lo contrario tendrá
 que realizar el proceso de autenticación
 
+``` javascript
 const ensureAuthenticated*=*(req, res, next) =\> {
 
-*if* (req.isAuthenticated())
+if (req.isAuthenticated())
 
-*return* next();
+return next();
 
-*else*
+else
 
-*return* res.redirect('/login');
+return res.redirect('/login');
 
 }
+```
 
 configuramos 2 rutas get: Una de las rutas será el punto de entrada de SSO a la
 aplicación, cuando se llame passport auténtica y verificará la confianza entre
