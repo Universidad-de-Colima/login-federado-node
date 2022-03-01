@@ -140,7 +140,7 @@ resave: false }))
 analizará las cookies firmadas.
 
 se le indica la configuración del servidor de archivos estáticos mediante la
-instrucción `[javascript] app.use()`
+instrucción `app.use()`
 
 si el usuario está autenticado se le da permiso de pasar, de lo contrario tendrá
 que realizar el proceso de autenticación
@@ -167,98 +167,64 @@ Si la sesión está activa devuelve una respuesta SAML
 
 Si la sesión no está activa, se redirige al inicio de sesión del IdP
 
+``` javascript
 app.get('/',ensureAuthenticated, (req, res) =\> res.send('Authenticated'));
 
 app.get('/login', passport.authenticate('saml', { failureRedirect:
 '/login/fail', failureFlash: true }), (req, res) =\> res.redirect('/'));
+```
 
 Esta es la URL de la devolución de la llamada. Una vez que el IdP haya validado
 las credenciales, se llamará con el cuerpo de solicitud de base64 SAML
 
-app.post('/login/callback', (req, res,next)=\> {
+``` javascript
+app.post('/login/callback', passport.authenticate('saml', { 
+  failureRedirect: '/login/fail',
+  failureFlash: true
+}), (req,res) => res.send(req.user););
+```
 
-next();
-
-},
-
-passport.authenticate('saml', {
-
-failureRedirect: '/login/fail',
-
-session:false
-
-}), (req,res) =\> {
-
-const uCorreo *=* req.user?.uCorreo;
-
-const uNombre *=* req.user?.uNombre;
-
-const uDependencia *=* req.user?.uDependencia;
-
-const uCuenta *=* req.user?.uCuenta;
-
-const uTrabajador *=* req.user?.uTrabajador;
-
-const uTipo *=* req.user?.uTipo;
-
-const cn *=* req.user?.cn;
-
-const sn *=* req.user?.sn;
-
-const displayName *=* req.user?.displayName;
-
-const givenName *=* req.user?.givenName;
-
-res.send({uCorreo, uNombre, uDependencia, uCuenta, uTrabajador, uTipo, cn, sn,
-displayName, givenName});
-
-}
-
-);
-
-**Deslogueo de la aplicación:**
+##Deslogueo de la aplicación:
 
 Creamos la ruta que nos permitirá cerrar la secion de nuestra aplicación y de
 nuestro IdP
 
-app.get('/logout', (req, res)=\> {
+``` javascript
+app.get('/logout', (req, res)=> {
+       
+    if (!req.user) res.redirect('/');
+    
+    samlStrategy.logout(req, (err, request) =>{
+      return res.redirect(request)
+    });
+  });
 
-*if* (*!*req.user) res.redirect('/');
-
-samlStrategy.logout(req, (err, request) =\>{
-
-*return* res.redirect(request)
-
-});
-
-});
-
-:
+```
 
 realizamos el proceso de cierre de sesión de la aplicación con nuestro passport
 
-app.post('/logout/callback', (req, res) =\>{
-
-req.logout();
-
-res.redirect('/');
-
-});
+``` javascript
+app.post('/logout/callback', (req, res) =>{
+    req.logout();
+    res.redirect('/');
+  });
+```
 
 **levantamos nuestro servidor:**
-
+``` javascript
 const server *=* app.listen(4006, () =\> console.log('Listening on port %d',
 server.address().port));
 
-node app.js
+```
+ejecutamos el comando: `node app.js`
 
 **OJO: esta aplicación sólo funcionará con la configuración que ya está
 establecida, si se cambian los parámetros no funcionará de manera correcta.**
 
 **NO MOVER EL PUERTO DE ESCUCHA NI LOS CERTIFICADOS**
 
-Ejemplos:![](media/49898199b8e32762b0e32116ba90d3fb.png)
+![Image text](https://github.com/Universidad-de-Colima/login-federado-node/blob/main/images/967bf838-3d6c-466c-bf32-ac7f6ecfa396.jpg)
 
-![](media/e02d141b6f7cf1df22a54d7cdb133112.png)
+![Image text](https://github.com/Universidad-de-Colima/login-federado-node/blob/main/images/4cd851c5-0b17-4bd4-90e3-e8c9f54df003.jpg)
 
-![](media/2153c27e2f2541676f4000f0ae218ef7.png)
+![Image text](https://github.com/Universidad-de-Colima/login-federado-node/blob/main/images/792a6cca-aece-496e-946b-19ce75ad53a0.jpg)
