@@ -72,11 +72,13 @@ openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -nodes -days 90
 establecer la confianza entre el proveedor de identidad y el proveedor de
 servicios.
 
-este certificado se obtiene en el siguiente enlace:
+![Image text](https://github.com/Universidad-de-Colima/login-federado-node/blob/main/images/e5982edc-5355-4952-8caa-21c70eb1f194.jpg)
+
+este certificado y el entryPointy se obtiene en el siguiente enlace:
 
 <https://wayf.ucol.mx/saml2/idp/metadata.php?output=xhtml>
 
-![Image text](https://github.com/Universidad-de-Colima/login-federado-node/blob/main/images/e5982edc-5355-4952-8caa-21c70eb1f194.jpg)
+
 
 Ejemplo:
 ``` javascript
@@ -170,7 +172,7 @@ app.post('/login/callback', passport.authenticate('saml', {
 }), (req,res) => res.send(req.user););
 ```
 
-##Deslogueo de la aplicación:
+## Deslogueo de la aplicación:
 
 Creamos la ruta que nos permitirá cerrar la secion de nuestra aplicación y de
 nuestro IdP
@@ -214,3 +216,11 @@ establecida, si se cambian los parámetros no funcionará de manera correcta.**
 ![Image text](https://github.com/Universidad-de-Colima/login-federado-node/blob/main/images/4cd851c5-0b17-4bd4-90e3-e8c9f54df003.jpg)
 
 ![Image text](https://github.com/Universidad-de-Colima/login-federado-node/blob/main/images/792a6cca-aece-496e-946b-19ce75ad53a0.jpg)
+
+Para poner una aplicación en producción, será necesario que se ponga en contacto a sistemas@ucol.mx para que le indiquen el procedimiento requerido.
+
+Más información
+Federación de Identidades de la Universidad de Colima
+
+Federación UCOL - Página oficial
+<https://portal.ucol.mx/federacion-identidades/>
