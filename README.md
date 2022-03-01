@@ -2,7 +2,7 @@
 
 Este es un demo del login de la federación hecho con entorno JS
 
-passport es un middleware de autenticación para Node.js, se puede colocar en
+[passport](https://github.com/node-saml/passport-saml) es un middleware de autenticación para Node.js, se puede colocar en
 cualquier aplicación web basada en Express, admite la autenticación mediante un
 nombre de usuario y contraseña, facebook, twitter, entre otros.
 
@@ -47,26 +47,25 @@ identidad**:
 consumirá la respuesta SAML una vez que se realice la autenticación del
 proveedor de identidad.
 
-*entryPoint*: Es la URL proporcionada por el proveedor de identidad que se utiliza
-para redirigir a los usuarios en la página de inicio de sesión si no están
-autenticados.
-
-se obtiene en la parte del SingleSignOnService
-![Image text](https://github.com/Universidad-de-Colima/login-federado-node/blob/main/images/09c851be-3cb3-4322-bacc-bf4f369fc164.jpg)
 
 *issuer*: cadena proporcionada al proveedor de identidad para identificar de forma
-única al proveedor de servicios (entityID
-
-*decryptionPvk*: clave privada para intentar descifrar cualquier aserción cifrada
-que se reciba
+única al proveedor de servicios (entityID)
 
 *privateCert*: certificado de proveedor de servicios
 
 Tanto el decryptionPvk como el privateCert se obtiene con el siguiente comando
 
+*decryptionPvk*: clave privada para intentar descifrar cualquier aserción cifrada
+que se reciba
+
 ```powershell
 openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -nodes -days 900
 ```
+
+*entryPoint*: Es la URL proporcionada por el proveedor de identidad que se utiliza
+para redirigir a los usuarios en la página de inicio de sesión si no están
+autenticados. se obtiene en la parte del SingleSignOnService
+![Image text](https://github.com/Universidad-de-Colima/login-federado-node/blob/main/images/09c851be-3cb3-4322-bacc-bf4f369fc164.jpg)
 
 *cert*: Es el certificado proporcionado por el proveedor de identidad, para poder
 establecer la confianza entre el proveedor de identidad y el proveedor de
@@ -77,8 +76,6 @@ servicios.
 este certificado y el entryPointy se obtiene en el siguiente enlace:
 
 <https://wayf.ucol.mx/saml2/idp/metadata.php?output=xhtml>
-
-
 
 Ejemplo:
 ``` javascript
