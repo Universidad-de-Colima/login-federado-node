@@ -22,7 +22,7 @@ nombre de usuario y contraseña, facebook, twitter, entre otros.
 
 Se realiza la instanciación de las dependencias:
 
-```
+``` javascript
 const fs = require('fs');
 
 const express = require("express");
@@ -49,8 +49,8 @@ entryPoint: Es la URL proporcionada por el proveedor de identidad que se utiliza
 para redirigir a los usuarios en la página de inicio de sesión si no están
 autenticados.
 
-se obtiene en la parte del
-SingleSignOnService![](media/3876a45d2c5b91084146ba767b8aee7a.png)
+se obtiene en la parte del SingleSignOnService
+![Image text](https://github.com/Universidad-de-Colima/login-federado-node/blob/main/images/09c851be-3cb3-4322-bacc-bf4f369fc164.jpg)
 
 issuer: cadena proporcionada al proveedor de identidad para identificar de forma
 única al proveedor de servicios (entityID
