@@ -13,13 +13,13 @@ npm i passport
 
 npm i passport-saml
 
-*npm i express*
+npm i express
 
-*npm i cookie-parser*
+npm i cookie-parser
 
-*npm i express-session*
+npm i express-session
 
-*npm i cors*
+npm i cors
 ```
 
 Se realiza la instanciación de las dependencias:
@@ -64,8 +64,9 @@ que se reciba
 
 Tanto el decryptionPvk como el privateCert se obtiene con el siguiente comando
 
-*openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -nodes -days
-900*
+```powershell
+openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -nodes -days 900
+```
 
 *cert*: Es el certificado proporcionado por el proveedor de identidad, para poder
 establecer la confianza entre el proveedor de identidad y el proveedor de
@@ -75,10 +76,10 @@ este certificado se obtiene en el siguiente enlace:
 
 <https://wayf.ucol.mx/saml2/idp/metadata.php?output=xhtml>
 
-![](media/d21547ec8dd7de5969480afdf8121b9b.png)
+![Image text](https://github.com/Universidad-de-Colima/login-federado-node/blob/main/images/e5982edc-5355-4952-8caa-21c70eb1f194.jpg)
 
 Ejemplo:
-
+``` javascript
 passport.serializeUser((user, done) =\> done(null, user));
 
 passport.deserializeUser((user, done) =\> done(null, user));
@@ -100,15 +101,17 @@ cert: fs.readFileSync(__dirname *+* '/cert/idp.crt', 'utf8')
 }, (profile, done) =\> done(null, profile));
 
 passport.use(samlStrategy);
+```
 
-El módulo fs nos permite acceder e interactuar con el sistema de archivos.
+El módulo `fs` nos permite acceder e interactuar con el sistema de archivos.
 
-La función fs.readFileSync() nos permite leer el contenido de un archivo de
+La función `fs.readFileSync()` nos permite leer el contenido de un archivo de
 manera síncrona
 
 **configuración e iniciación de este middleware en nuestra aplicación**
 
-**const app = express();**
+``` javascript
+const app = express();
 
 Configuración del servidor express
 
@@ -131,6 +134,7 @@ saveUninitialized:true,
 cookie: { maxAge:1000 *\** 60 *\** 60 *\** 24 },
 
 resave: false }))
+```
 
 secret:Es una cadena para firmar cookies, es opcional, y si no se especifica no
 analizará las cookies firmadas.
