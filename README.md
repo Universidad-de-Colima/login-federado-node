@@ -159,7 +159,7 @@ app.get('/',ensureAuthenticated, (req, res) => res.send('Authenticated'));
 app.get('/login', passport.authenticate('saml', { failureRedirect:'/login/fail', failureFlash: true }), (req, res) => res.redirect('/'));
 ```
 
-Esta es la URL de la devolución de la ll deededededededeamada. Una vez que el IdP haya validado
+Esta es la URL de la devolución de la llamada. Una vez que el IdP haya validado
 las credenciales, se llamará con el cuerpo de solicitud de base64 SAML
 
 ``` javascript
