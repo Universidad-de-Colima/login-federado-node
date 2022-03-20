@@ -159,7 +159,7 @@ app.get('/',ensureAuthenticated, (req, res) => res.send('Authenticated'));
 app.get('/login', passport.authenticate('saml', { failureRedirect:'/login/fail', failureFlash: true }), (req, res) => res.redirect('/'));
 ```
 
-Esta es la URL de la devolución de la llamada. Una vez que el IdP haya validado
+Esta es la URL de la devolución de la ll deededededededeamada. Una vez que el IdP haya validado
 las credenciales, se llamará con el cuerpo de solicitud de base64 SAML
 
 ``` javascript
@@ -195,7 +195,7 @@ app.post('/logout/callback', (req, res) =>{
   });
 ```
 
-**levantamos nuestro servidor:**
+**Levantamos nuestro servidor:**
 ``` javascript
 const server = app.listen(4006, () => console.log('Listening on port %d',
 server.address().port));
@@ -204,7 +204,9 @@ server.address().port));
 ejecutamos el comando: `node app.js`
 
 **OJO: esta aplicación sólo funcionará con la configuración que ya está
-establecida, si se cambian los parámetros no funcionará de manera correcta.**
+establecida, si se cambian los parámetros no funcionará de manera correcta. Si usted requiere modificar los parámetros, consulte la documentación establecida arriba.**
+
+
 
 **NO MOVER EL PUERTO DE ESCUCHA NI LOS CERTIFICADOS**
 
@@ -214,9 +216,16 @@ establecida, si se cambian los parámetros no funcionará de manera correcta.**
 
 ![Image text](https://github.com/Universidad-de-Colima/login-federado-node/blob/main/images/792a6cca-aece-496e-946b-19ce75ad53a0.jpg)
 
-Para poner una aplicación en producción, será necesario que se ponga en contacto a sistemas@ucol.mx para que le indiquen el procedimiento requerido.
+Para poner una aplicación en producción, será necesario que se ponga en contacto a sistemas@ucol.mx para que le indiquen el procedimiento requerido. Para esto, deberá establecer un EntityID y certificados nuevos personales. Los incluidos aquí solo son de uso de desarrollo.
 
-Más información
+
+Proporcione  los metadatos de su aplicación a sistemas. Los podrá obtener de la ruta `/Metadata `
+
+ ***Ejemplo de ruta de metadatos:***
+ ` http://localhost:4006/Metadata `
+ 
+### *Más información*
+
 Federación de Identidades de la Universidad de Colima
 
 Federación UCOL - Página oficial
