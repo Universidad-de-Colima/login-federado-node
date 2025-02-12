@@ -19,30 +19,30 @@ const samlStrategy = new saml.Strategy({
   issuer: "http://localhost/20166932",
   decryptionPvk: fs.readFileSync(__dirname + '/cert/key.pem', 'utf8'),
   cert: fs.readFileSync(__dirname + '/cert/idp.crt', 'utf8')
-}, (profile, done)=>{ const user= Object.assign({},profile); return done(null, profile)} );
+}, (profile, done) => { const user = Object.assign({}, profile); return done(null, profile) });
 
 app.use(session({
   secret: "thisismysecrctekeyfhrgfgrfrty84fwir767",
   saveUninitialized: true,
   resave: true
-  
+
 }));
 
 passport.use(samlStrategy);
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(express.json());
-app.use(express.urlencoded({extended:true}));
+app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 
 app.get('/', (req, res) => res.redirect('/login'));
 
-app.get('/login', passport.authenticate('saml', { failureRedirect: '/login/fail', failureFlash: true}), (req, res) => res.redirect('/'));
+app.get('/login', passport.authenticate('saml', { failureRedirect: '/login/fail', failureFlash: true }), (req, res) => res.redirect('/'));
 
-app.post('/login/callback', passport.authenticate('saml', { 
+app.post('/api/auth/login/callback', passport.authenticate('saml', {
   failureRedirect: '/login/fail',
   failureFlash: true
-}), (req,res) => {
+}), (req, res) => {
   // const uCorreo = req.user?.uCorreo;
   // const uNombre = req.user?.uNombre;
   // const uDependencia = req.user?.uDependencia;
@@ -55,28 +55,28 @@ app.post('/login/callback', passport.authenticate('saml', {
   // const givenName = req.user?.givenName;
   res.send(req.user);
 }
-  );
+);
 
-  app.get('/logout', (req, res)=> {
-       
-    if (!req.user) res.redirect('/');
-    
-    samlStrategy.logout(req, (err, request) =>{
-      return res.redirect(request)
-    });
-   });
+app.get('/api/auth/logout', (req, res) => {
 
-   app.post('/logout/callback', (req, res) =>{
-    req.logout();
-    res.redirect('/');
+  if (!req.user) res.redirect('/');
+
+  samlStrategy.logout(req, (err, request) => {
+    return res.redirect(request)
   });
+});
+
+app.post('/api/auth/logout/callback', (req, res) => {
+  req.logout();
+  res.redirect('/');
+});
 
 app.get('/login/fail', (req, res) => res.status(401).send('Login failed'));
 
 app.get('/Metadata', (req, res) => {
-    res.type('application/xml');
-    res.status(200).send(samlStrategy.generateServiceProviderMetadata(fs.readFileSync(__dirname + '/cert/cert.pem', 'utf8')));
-  }
+  res.type('application/xml');
+  res.status(200).send(samlStrategy.generateServiceProviderMetadata(fs.readFileSync(__dirname + '/cert/cert.pem', 'utf8')));
+}
 );
 
 //general error handler
