@@ -2,7 +2,7 @@ const fs = require('fs');
 const express = require("express");
 const session = require('express-session');
 const passport = require('passport');
-const saml = require('passport-saml');
+const saml = require('@node-saml/passport-saml');
 const cors = require('cors');
 
 const app = express();
@@ -18,7 +18,10 @@ const samlStrategy = new saml.Strategy({
   logoutCallbackUrl: 'http://localhost:4006/logout/callback',
   issuer: "http://localhost/20166932",
   decryptionPvk: fs.readFileSync(__dirname + '/cert/key.pem', 'utf8'),
-  cert: fs.readFileSync(__dirname + '/cert/idp.crt', 'utf8')
+  idpCert: fs.readFileSync(__dirname + '/cert/idp.crt', 'utf8'),
+  // -1 deshabilita la validación de timestamps (necesario por desfase del IdP de UCOL)
+  // En producción usar el valor en ms real del desfase detectado, o corregir el reloj del IdP
+  acceptedClockSkewMs: -1
 }, (profile, done) => { const user = Object.assign({}, profile); return done(null, profile) });
 
 app.use(session({
@@ -35,9 +38,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 
+
 app.get('/', (req, res) => res.redirect('/login'));
 
-app.get('/login', passport.authenticate('saml', { failureRedirect: '/login/fail', failureFlash: true }), (req, res) => res.redirect('/'));
+app.get('/login', passport.authenticate('saml', { failureRedirect: '/login/fail', failureFlash: true }),
+(_req, res) => res.redirect('/'));
 
 app.post('/api/auth/login/callback', passport.authenticate('saml', {
   failureRedirect: '/login/fail',
@@ -54,15 +59,13 @@ app.post('/api/auth/login/callback', passport.authenticate('saml', {
   // const displayName = req.user?.displayName;
   // const givenName = req.user?.givenName;
   res.send(req.user);
-}
-);
+});
 
 app.get('/api/auth/logout', (req, res) => {
-
-  if (!req.user) res.redirect('/');
+  if (!req.user) return res.redirect('/');
 
   samlStrategy.logout(req, (err, request) => {
-    return res.redirect(request)
+    return res.redirect(request);
   });
 });
 
