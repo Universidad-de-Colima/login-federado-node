@@ -1,232 +1,167 @@
-# Demo login federado con node
+# Demo de login federado con Node.js
 
-Este es un demo del login de la federación hecho con entorno JS
+Demo de integración con la Federación de Identidades de la Universidad de Colima usando Node.js, Express y [passport-saml](https://github.com/node-saml/passport-saml). La aplicación actúa como **Proveedor de Servicios (SP)** y se autentica contra el **Proveedor de Identidad (IdP)** de UCOL mediante SAML 2.0.
 
-[passport](https://github.com/node-saml/passport-saml) es un middleware de autenticación para Node.js, se puede colocar en
-cualquier aplicación web basada en Express, admite la autenticación mediante un
-nombre de usuario y contraseña, facebook, twitter, entre otros.
+> **Importante:** este demo solo funciona con la configuración incluida (puerto, `issuer` y certificados). Si cambia alguno de estos valores, el IdP rechazará la autenticación. **No cambie el puerto de escucha ni los certificados** mientras esté en desarrollo.
 
-**Dependencias requeridas:**
+## Contenido
+
+- [Requisitos](#requisitos)
+- [Inicio rápido](#inicio-rápido)
+- [Rutas](#rutas)
+- [Configuración de SAML](#configuración-de-saml)
+- [Certificados](#certificados)
+- [Flujo de autenticación](#flujo-de-autenticación)
+- [Paso a producción](#paso-a-producción)
+- [Más información](#más-información)
+
+## Requisitos
+
+- [Node.js](https://nodejs.org/) (versión LTS)
+- npm
+- OpenSSL (solo si necesita generar certificados propios)
+
+## Inicio rápido
 
 ```powershell
-npm i passport
-
-npm i passport-saml
-
-npm i express
-
-npm i cookie-parser
-
-npm i express-session
-
-npm i cors
+git clone https://github.com/Universidad-de-Colima/login-federado-node.git
+cd login-federado-node
+npm install
+node app.js
 ```
 
-Se realiza la instanciación de las dependencias:
+El servidor queda escuchando en `http://localhost:4006`. Al abrir esa dirección, la aplicación lo redirige a `/login` y de ahí al inicio de sesión del IdP.
 
-``` javascript
-const fs = require('fs');
+### Dependencias
 
-const express = require("express");
+| Paquete | Uso |
+| --- | --- |
+| `@node-saml/passport-saml` | Estrategia SAML para Passport |
+| `passport` | Middleware de autenticación |
+| `express` | Servidor web |
+| `express-session` | Manejo de sesiones |
+| `cors` | Habilita CORS |
+| `dotenv` | Carga de variables de entorno |
 
-const cookieParser = require('cookie-parser');
+## Rutas
 
-const session = require('express-session');
+| Método | Ruta | Descripción |
+| --- | --- | --- |
+| GET | `/` | Redirige a `/login` |
+| GET | `/login` | Inicia el SSO: redirige al IdP si no hay sesión |
+| POST | `/api/auth/login/callback` | Recibe la respuesta SAML del IdP y devuelve el perfil del usuario |
+| GET | `/api/auth/logout` | Inicia el cierre de sesión en la aplicación y en el IdP |
+| POST | `/api/auth/logout/callback` | Cierra la sesión local cuando el IdP responde |
+| GET | `/login/fail` | Responde `401` cuando falla la autenticación |
+| GET | `/Metadata` | Metadatos XML del SP (se entregan a sistemas) |
 
-const passport = require('passport');
+## Configuración de SAML
 
-const saml = require('passport-saml');
+La estrategia se define en [app.js](app.js):
 
-const cors = require('cors');
+```javascript
+const samlStrategy = new saml.Strategy({
+  callbackUrl: "http://localhost:4006/login/callback",
+  entryPoint: "https://wayf.ucol.mx/saml2/idp/SSOService.php",
+  logoutUrl: 'https://wayf.ucol.mx/saml2/idp/SingleLogoutService.php',
+  logoutCallbackUrl: 'http://localhost:4006/logout/callback',
+  issuer: "http://localhost/20166932",
+  decryptionPvk: fs.readFileSync(__dirname + '/cert/key.pem', 'utf8'),
+  idpCert: fs.readFileSync(__dirname + '/cert/idp.crt', 'utf8'),
+  acceptedClockSkewMs: -1
+}, (profile, done) => done(null, profile));
 ```
 
-**Configuración de nuestro middleware con nuestra configuración del proveedor de
-identidad**:
+| Parámetro | Descripción |
+| --- | --- |
+| `callbackUrl` | URL absoluta de su aplicación que recibe la respuesta SAML una vez que el IdP autentica al usuario |
+| `entryPoint` | URL del IdP a la que se redirige al usuario para iniciar sesión (`SingleSignOnService`) |
+| `logoutUrl` | URL del IdP para el cierre de sesión (`SingleLogoutService`) |
+| `logoutCallbackUrl` | URL de su aplicación que recibe la respuesta del IdP al cerrar sesión |
+| `issuer` | Identificador único del SP ante el IdP (`entityID`) |
+| `decryptionPvk` | Llave privada para descifrar las aserciones cifradas que envía el IdP |
+| `idpCert` | Certificado público del IdP, necesario para validar la firma de sus respuestas |
+| `acceptedClockSkewMs` | Desfase de reloj tolerado. `-1` desactiva la validación de tiempos (ver nota abajo) |
 
-*callbackUrl*: Es la URL absoluta del proveedor de servicios (su aplicación) que
-consumirá la respuesta SAML una vez que se realice la autenticación del
-proveedor de identidad.
+> **Nota sobre `acceptedClockSkewMs: -1`:** el demo desactiva la validación de las marcas de tiempo por un desfase en el reloj del IdP. No use este valor en producción.
 
+### Obtener `entryPoint` e `idpCert`
 
-*issuer*: cadena proporcionada al proveedor de identidad para identificar de forma
-única al proveedor de servicios (entityID)
+Ambos datos están en los metadatos del IdP:
 
-*privateCert*: certificado de proveedor de servicios
+<https://wayf.ucol.mx/saml2/idp/metadata.php?output=xhtml>
 
-*decryptionPvk*: clave privada para intentar descifrar cualquier aserción cifrada
-que se reciba
+`entryPoint` se toma del `SingleSignOnService`:
 
-Tanto el decryptionPvk como el privateCert se obtiene con el siguiente comando
+![entryPoint](https://github.com/Universidad-de-Colima/login-federado-node/blob/main/images/09c851be-3cb3-4322-bacc-bf4f369fc164.jpg)
+
+El certificado del IdP se guarda como `cert/idp.crt`:
+
+![Certificado del IdP](https://github.com/Universidad-de-Colima/login-federado-node/blob/main/images/e5982edc-5355-4952-8caa-21c70eb1f194.jpg)
+
+## Certificados
+
+La carpeta `cert/` contiene:
+
+| Archivo | Contenido |
+| --- | --- |
+| `key.pem` | Llave privada del SP (usada en `decryptionPvk`) |
+| `cert.pem` | Certificado público del SP (se publica en `/Metadata`) |
+| `idp.crt` | Certificado público del IdP |
+
+Los incluidos en este repositorio son **solo para desarrollo**. Para generar un par propio:
 
 ```powershell
 openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -nodes -days 900
 ```
 
-*entryPoint*: Es la URL proporcionada por el proveedor de identidad que se utiliza
-para redirigir a los usuarios en la página de inicio de sesión si no están
-autenticados. se obtiene en la parte del SingleSignOnService
-![Image text](https://github.com/Universidad-de-Colima/login-federado-node/blob/main/images/09c851be-3cb3-4322-bacc-bf4f369fc164.jpg)
+## Flujo de autenticación
 
-*cert*: Es el certificado proporcionado por el proveedor de identidad, para poder
-establecer la confianza entre el proveedor de identidad y el proveedor de
-servicios.
+1. El usuario abre `/` y la aplicación lo redirige a `/login`.
+2. Passport genera la solicitud SAML y redirige al IdP (`entryPoint`).
+3. El usuario captura sus credenciales en el IdP.
+4. El IdP envía por POST la respuesta SAML (en base64) a la ruta de callback.
+5. Passport valida la firma, descifra la aserción y deja el perfil en `req.user`.
 
-![Image text](https://github.com/Universidad-de-Colima/login-federado-node/blob/main/images/e5982edc-5355-4952-8caa-21c70eb1f194.jpg)
+### Datos del usuario
 
-este certificado y el entryPointy se obtiene en el siguiente enlace:
+Al autenticarse, `req.user` contiene los atributos que entrega el IdP, por ejemplo:
 
-<https://wayf.ucol.mx/saml2/idp/metadata.php?output=xhtml>
+`uCorreo`, `uNombre`, `uDependencia`, `uCuenta`, `uTrabajador`, `uTipo`, `cn`, `sn`, `displayName`, `givenName`.
 
-Ejemplo:
-``` javascript
-passport.serializeUser((user, done) => done(null, user));
-
-passport.deserializeUser((user, done) => done(null, user));
-
-const samlStrategy = new saml.Strategy({
-
-callbackUrl: "http://localhost:4006/login/callback",
-
-entryPoint: "https://wayf.ucol.mx/saml2/idp/SSOService.php",
-
-issuer: "http://localhost/20166932",
-
-decryptionPvk: fs.readFileSync(__dirname + '/cert/key.pem', 'utf8'),
-
-privateCert: fs.readFileSync(__dirname + '/cert/cert.pem', 'utf8'),
-
-cert: fs.readFileSync(__dirname + '/cert/idp.crt', 'utf8')
-
-}, (profile, done) => done(null, profile));
-
-passport.use(samlStrategy);
-```
-
-El módulo `fs` nos permite acceder e interactuar con el sistema de archivos.
-
-La función `fs.readFileSync()` nos permite leer el contenido de un archivo de
-manera síncrona
-
-**configuración e iniciación de este middleware en nuestra aplicación**
-
-``` javascript
-const app = express();
-
-//Configuración del servidor express
-
-const app = express();
-
-passport.use(samlStrategy);
-app.use(passport.initialize());
-app.use(passport.session());
-app.use(express.json());
-app.use(express.urlencoded({extended:true}));
-app.use(cookieParser());
-app.use(cors());
-```
-
-se le indica la configuración del servidor de archivos estáticos mediante la
-instrucción `app.use()`
-
-si el usuario está autenticado se le da permiso de pasar, de lo contrario tendrá
-que realizar el proceso de autenticación
-
-``` javascript
-const ensureAuthenticated=(req, res, next) => {
-
-if (req.isAuthenticated())
-
-return next();
-
-else
-
-return res.redirect('/login');
-
-}
-```
-
-configuramos 2 rutas get: Una de las rutas será el punto de entrada de SSO a la
-aplicación, cuando se llame passport auténtica y verificará la confianza entre
-el SP y el IdP:
-
-Si la sesión está activa devuelve una respuesta SAML
-
-Si la sesión no está activa, se redirige al inicio de sesión del IdP
-
-``` javascript
-app.get('/',ensureAuthenticated, (req, res) => res.send('Authenticated'));
-
-app.get('/login', passport.authenticate('saml', { failureRedirect:'/login/fail', failureFlash: true }), (req, res) => res.redirect('/'));
-```
-
-Esta es la URL de la devolución de la llamada. Una vez que el IdP haya validado
-las credenciales, se llamará con el cuerpo de solicitud de base64 SAML
-
-``` javascript
-app.post('/login/callback', passport.authenticate('saml', { 
+```javascript
+app.post('/api/auth/login/callback', passport.authenticate('saml', {
   failureRedirect: '/login/fail',
   failureFlash: true
-}), (req,res) => res.send(req.user););
+}), (req, res) => {
+  const { uCorreo, uNombre } = req.user;
+  res.send(req.user);
+});
 ```
 
-## Deslogueo de la aplicación:
+### Cierre de sesión
 
-Creamos la ruta que nos permitirá cerrar la secion de nuestra aplicación y de
-nuestro IdP
+`GET /api/auth/logout` genera la solicitud de cierre de sesión (`samlStrategy.logout`) y redirige al IdP. Cuando el IdP responde, `POST /api/auth/logout/callback` ejecuta `req.logout()` y regresa al inicio.
 
-``` javascript
-app.get('/logout', (req, res)=> {
-       
-    if (!req.user) res.redirect('/');
-    
-    samlStrategy.logout(req, (err, request) =>{
-      return res.redirect(request)
-    });
-  });
+## Paso a producción
 
-```
+Para poner una aplicación en producción escriba a <sistemas@ucol.mx> para conocer el procedimiento. Deberá contar con:
 
-realizamos el proceso de cierre de sesión de la aplicación con nuestro passport
+- Un `entityID` (`issuer`) propio.
+- Certificados propios. Los de este repositorio son solo para desarrollo.
+- Su `callbackUrl` y `logoutCallbackUrl` en HTTPS.
 
-``` javascript
-app.post('/logout/callback', (req, res) =>{
-    req.logout();
-    res.redirect('/');
-  });
-```
+Entregue a sistemas los metadatos de su aplicación, disponibles en la ruta `/Metadata`. Por ejemplo, en desarrollo: <http://localhost:4006/Metadata>
 
-**Levantamos nuestro servidor:**
-``` javascript
-const server = app.listen(4006, () => console.log('Listening on port %d',
-server.address().port));
+## Capturas de referencia
 
-```
-ejecutamos el comando: `node app.js`
+![Referencia 1](https://github.com/Universidad-de-Colima/login-federado-node/blob/main/images/967bf838-3d6c-466c-bf32-ac7f6ecfa396.jpg)
 
-**OJO: esta aplicación sólo funcionará con la configuración que ya está
-establecida, si se cambian los parámetros no funcionará de manera correcta. Si usted requiere modificar los parámetros, consulte la documentación establecida arriba.**
+![Referencia 2](https://github.com/Universidad-de-Colima/login-federado-node/blob/main/images/4cd851c5-0b17-4bd4-90e3-e8c9f54df003.jpg)
 
+![Referencia 3](https://github.com/Universidad-de-Colima/login-federado-node/blob/main/images/792a6cca-aece-496e-946b-19ce75ad53a0.jpg)
 
+## Más información
 
-**NO MOVER EL PUERTO DE ESCUCHA NI LOS CERTIFICADOS**
-
-![Image text](https://github.com/Universidad-de-Colima/login-federado-node/blob/main/images/967bf838-3d6c-466c-bf32-ac7f6ecfa396.jpg)
-
-![Image text](https://github.com/Universidad-de-Colima/login-federado-node/blob/main/images/4cd851c5-0b17-4bd4-90e3-e8c9f54df003.jpg)
-
-![Image text](https://github.com/Universidad-de-Colima/login-federado-node/blob/main/images/792a6cca-aece-496e-946b-19ce75ad53a0.jpg)
-
-Para poner una aplicación en producción, será necesario que se ponga en contacto a sistemas@ucol.mx para que le indiquen el procedimiento requerido. Para esto, deberá establecer un EntityID y certificados nuevos personales. Los incluidos aquí solo son de uso de desarrollo.
-
-
-Proporcione  los metadatos de su aplicación a sistemas. Los podrá obtener de la ruta `/Metadata `
-
- ***Ejemplo de ruta de metadatos:***
- ` http://localhost:4006/Metadata `
- 
-### *Más información*
-
-Federación de Identidades de la Universidad de Colima
-
-Federación UCOL - Página oficial
-<https://portal.ucol.mx/federacion-identidades/>
+- Federación de Identidades de la Universidad de Colima: <https://portal.ucol.mx/federacion-identidades/>
+- Documentación de passport-saml: <https://github.com/node-saml/passport-saml>
