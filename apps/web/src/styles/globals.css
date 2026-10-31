@@ -1,0 +1,10 @@
+@import "tailwindcss";
+@import "@heroui/styles";
+@import "./ucol-theme.css";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@source inline("bg-{ucol_green,ucol_green_dark,ucol_lime,ucol_blue,ucol_purple,ucol_blue_dark,ucol_magenta,ucol_brown,ucol_beige,ucol_orange,ucol_yellow,ucol_gray_dark,ucol_gray_medium,ucol_gray_light,apple_green,ultra_violet,tea_green,fire_brick,amber,picton_blue,jet,bronze,bondi_blue,byzantine_blue}-{100,200,300,400,500,600,700,800,900}");
+@source inline("bg-{dark,timberwolf,white_smoke}-{100,200,500}");

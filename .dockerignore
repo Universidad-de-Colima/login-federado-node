@@ -1,0 +1,9 @@
+**/node_modules
+**/dist
+.git
+.env
+cert
+images
+app.js
+package*.json
+pnpm-lock.yaml
