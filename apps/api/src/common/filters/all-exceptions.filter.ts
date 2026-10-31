@@ -16,8 +16,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
   catch(exception: unknown, host: ArgumentsHost) {
     const res = host.switchToHttp().getResponse<Response>();
-    this.logger.error(exception instanceof Error ? exception.stack : exception);
-
     let message = 'Error interno del servidor';
     if (exception instanceof HttpException) {
       const body = exception.getResponse();
@@ -32,6 +30,12 @@ export class AllExceptionsFilter implements ExceptionFilter {
       exception instanceof ForbiddenException
         ? exception.getStatus()
         : HTTP_FAIL;
+    // 401/403 son esperados (p. ej. /auth/me sin sesión): una línea, sin stack.
+    if (status === HTTP_FAIL) {
+      this.logger.error(exception instanceof Error ? exception.stack : exception);
+    } else {
+      this.logger.warn(`${status} ${message}`);
+    }
     res.status(status).json(ResponseAdapter.fail(message));
   }
 }
